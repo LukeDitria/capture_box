@@ -1,0 +1,13 @@
+[Unit]
+Description=YOLO Object Detection Service
+After=network.target
+
+[Service]
+ExecStart=home/luke/Documents/capture_box/start_capture.sh
+Restart=always
+User=your_username
+StandardOutput=append:/var/log/capture-service.log
+StandardError=append:/var/log/capture-service.log
+
+[Install]
+WantedBy=multi-user.target
