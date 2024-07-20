@@ -57,7 +57,12 @@ def main():
                     print(f"No detection above threshold for {filename}")
 
                 # Delete the original image
-                os.remove(image_path)
+                try:
+                    os.remove(image_path)
+                except FileNotFoundError:
+                    print(f"File {image_path} was not found when trying to remove it.")
+                except PermissionError:
+                    print(f"Permission denied when trying to remove {image_path}.")
 
         time.sleep(args.interval)
 
