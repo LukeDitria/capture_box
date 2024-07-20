@@ -38,35 +38,36 @@ def main():
     if not os.path.exists(image_detections_path):
         os.mkdir(image_detections_path)
 
-    print(os.listdir(args.input_dir))
     while True:
-        for filename in os.listdir(args.input_dir):
-            if filename.lower().endswith('.jpg'):
-                image_path = os.path.join(args.input_dir, filename)
-                detections = utils.process_image(image_path, args.image_size,
-                                                 ort_session, yolo_labels, args.confidence)
+        file_list = os.listdir(args.input_dir)
+        if len(file_list) > 0:
+            for filename in file_list:
+                if filename.lower().endswith('.jpg'):
+                    image_path = os.path.join(args.input_dir, filename)
+                    detections = utils.process_image(image_path, args.image_size,
+                                                     ort_session, yolo_labels, args.confidence)
 
-                if detections:
-                    # Keep the original filename
-                    new_path = os.path.join(image_detections_path, filename)
-                    shutil.move(image_path, new_path)
+                    if detections:
+                        # Keep the original filename
+                        new_path = os.path.join(image_detections_path, filename)
+                        shutil.move(image_path, new_path)
 
-                    utils.log_detection(filename, json_detections_path, detections)
-                    print(f"Detected {len(detections)} objects in {filename}")
-                    for _, label, confidence in detections:
-                        print(f"- {label} with confidence {confidence:.2f}")
-                else:
-                    print(f"No detection above threshold for {filename}")
-                    # Delete the original image
-                    try:
-                        os.remove(image_path)
-                        print("Delete image")
-                    except FileNotFoundError:
-                        print(f"File {image_path} was not found when trying to remove it.")
-                    except PermissionError:
-                        print(f"Permission denied when trying to remove {image_path}.")
-
-        time.sleep(args.interval)
+                        utils.log_detection(filename, json_detections_path, detections)
+                        print(f"Detected {len(detections)} objects in {filename}")
+                        for _, label, confidence in detections:
+                            print(f"- {label} with confidence {confidence:.2f}")
+                    else:
+                        print(f"No detection above threshold for {filename}")
+                        # Delete the original image
+                        try:
+                            os.remove(image_path)
+                            print("Delete image")
+                        except FileNotFoundError:
+                            print(f"File {image_path} was not found when trying to remove it.")
+                        except PermissionError:
+                            print(f"Permission denied when trying to remove {image_path}.")
+        else:
+            time.sleep(args.interval)
 
 
 if __name__ == "__main__":
