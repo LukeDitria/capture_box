@@ -39,6 +39,7 @@ def main():
     if not os.path.exists(image_detections_path):
         os.mkdir(image_detections_path)
 
+    print(os.listdir(args.input_dir))
     while True:
         for filename in os.listdir(args.input_dir):
             if filename.lower().endswith('.jpg'):
@@ -47,24 +48,27 @@ def main():
                                                  ort_session, yolo_labels, args.confidence)
 
                 if detections:
-                    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                    new_filename = f"multi-{timestamp}-1.jpg"
-                    new_path = os.path.join(image_detections_path, new_filename)
+                    # Keep the original filename
+                    new_path = os.path.join(image_detections_path, filename)
                     shutil.move(image_path, new_path)
+
+                    # Extract timestamp from the filename
+                    timestamp = filename.split('-')[1]
+
                     utils.log_detection(filename, json_detections_path, detections, timestamp)
                     print(f"Detected {len(detections)} objects in {filename}")
                     for _, label, confidence in detections:
                         print(f"- {label} with confidence {confidence:.2f}")
                 else:
                     print(f"No detection above threshold for {filename}")
-
-                # Delete the original image
-                try:
-                    os.remove(image_path)
-                except FileNotFoundError:
-                    print(f"File {image_path} was not found when trying to remove it.")
-                except PermissionError:
-                    print(f"Permission denied when trying to remove {image_path}.")
+                    # Delete the original image
+                    try:
+                        os.remove(image_path)
+                        print("Delete image")
+                    except FileNotFoundError:
+                        print(f"File {image_path} was not found when trying to remove it.")
+                    except PermissionError:
+                        print(f"Permission denied when trying to remove {image_path}.")
 
         time.sleep(args.interval)
 
