@@ -27,7 +27,8 @@ def process_image(image_path, image_size, ort_session, yolo_labels, confidence_t
 
 
 def log_detection(filename, json_detections_path, detections):
-    for coordinates, label, confidence in detections:
+    all_detections = {}
+    for i, (coordinates, label, confidence) in enumerate(detections):
         detection = {
             "image": os.path.basename(filename),
             "timestamp": filename.split('-')[1],
@@ -35,12 +36,13 @@ def log_detection(filename, json_detections_path, detections):
             "confidence": float(confidence),
             "bbox": [float(coord) for coord in coordinates]
         }
+        all_detections[i] = detection
 
-        json_name = os.path.basename(filename).split(".")[0]
-        json_file = os.path.join(json_detections_path, f"{json_name}.json")
-        with open(json_file, "a") as f:
-            json.dump(detection, f)
-            f.write("\n")
+    json_name = os.path.basename(filename).split(".")[0]
+    json_file = os.path.join(json_detections_path, f"{json_name}.json")
+    with open(json_file, "a") as f:
+        json.dump(all_detections, f)
+        f.write("\n")
 
 
 def crop_resize(image, new_size):
