@@ -22,9 +22,9 @@ def process_image(image_path, image_size, ort_session, yolo_labels, confidence_t
     return None, None, None
 
 
-def log_detection(image_path, label, confidence, coordinates, timestamp):
+def log_detection(filename, image_path, label, confidence, coordinates, timestamp):
     detection = {
-        "image": os.path.basename(image_path),
+        "image": os.path.basename(filename),
         "timestamp": timestamp,
         "label": label,
         "confidence": float(confidence),

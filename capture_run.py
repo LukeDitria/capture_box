@@ -43,15 +43,15 @@ def main():
         for filename in os.listdir(args.input_dir):
             if filename.lower().endswith('.jpg'):
                 image_path = os.path.join(args.input_dir, filename)
-                coordinates, label, confidence = utils.process_image(image_detections_path, args.image_size,
+                coordinates, label, confidence = utils.process_image(image_path, args.image_size,
                                                                      ort_session, yolo_labels, args.confidence)
 
                 if coordinates is not None:
                     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
                     new_filename = f"{label}-{timestamp}-1.jpg"
-                    new_path = os.path.join(json_detections_path, new_filename)
+                    new_path = os.path.join(image_detections_path, new_filename)
                     shutil.move(image_path, new_path)
-                    utils.log_detection(new_path, label, confidence, coordinates, timestamp)
+                    utils.log_detection(filename, json_detections_path, label, confidence, coordinates, timestamp)
                     print(f"Detected {label} with confidence {confidence:.2f}")
                 else:
                     print(f"No detection above threshold for {filename}")
