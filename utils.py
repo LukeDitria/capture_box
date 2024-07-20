@@ -12,28 +12,33 @@ def process_image(image_path, image_size, ort_session, yolo_labels, confidence_t
     onnxruntime_input = {ort_session.get_inputs()[0].name: norm_image}
     onnxruntime_outputs = ort_session.run(None, onnxruntime_input)
 
-    det = onnxruntime_outputs[0]
+    detections = onnxruntime_outputs[0]
 
-    if det[0][6] >= confidence_threshold:
-        coordinates = det[0][1:5]  # xyxy
-        label = yolo_labels[int(det[0][5])]
-        confidence = det[0][6]
-        return coordinates, label, confidence
-    return None, None, None
+    results = []
+    if len(detections) > 0:
+        for det in detections:
+            if det[6] >= confidence_threshold:
+                coordinates = det[1:5]  # xyxy
+                label = yolo_labels[int(det[5])]
+                confidence = det[6]
+                results.append((coordinates, label, confidence))
+
+    return results
 
 
-def log_detection(filename, image_path, label, confidence, coordinates, timestamp):
-    detection = {
-        "image": os.path.basename(filename),
-        "timestamp": timestamp,
-        "label": label,
-        "confidence": float(confidence),
-        "bbox": [float(coord) for coord in coordinates]
-    }
-    with open("detections.json", "a") as f:
-        json.dump(detection, f)
-        f.write("\n")
-
+def log_detection(filename, json_detections_path, detections, timestamp):
+    for coordinates, label, confidence in detections:
+        detection = {
+            "image": os.path.basename(filename),
+            "timestamp": timestamp,
+            "label": label,
+            "confidence": float(confidence),
+            "bbox": [float(coord) for coord in coordinates]
+        }
+        json_file = os.path.join(json_detections_path, f"{timestamp}.json")
+        with open(json_file, "a") as f:
+            json.dump(detection, f)
+            f.write("\n")
 
 def crop_resize(image, new_size):
     width, height = image.size
