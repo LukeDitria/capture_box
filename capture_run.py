@@ -7,7 +7,6 @@ import utils
 import os
 import argparse
 import shutil
-from datetime import datetime
 
 
 def parse_arguments():
@@ -52,10 +51,7 @@ def main():
                     new_path = os.path.join(image_detections_path, filename)
                     shutil.move(image_path, new_path)
 
-                    # Extract timestamp from the filename
-                    timestamp = filename.split('-')[1]
-
-                    utils.log_detection(filename, json_detections_path, detections, timestamp)
+                    utils.log_detection(filename, json_detections_path, detections)
                     print(f"Detected {len(detections)} objects in {filename}")
                     for _, label, confidence in detections:
                         print(f"- {label} with confidence {confidence:.2f}")
