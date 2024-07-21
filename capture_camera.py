@@ -53,7 +53,7 @@ def main():
 
         # Resize and process the frame
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        detections = utils.process_image(image, ort_session, yolo_labels, args.confidence)
+        detections = utils.process_image(image, args.image_size, ort_session, yolo_labels, args.confidence)
 
         if detections:
             # Save the frame with detections
