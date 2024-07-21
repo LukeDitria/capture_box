@@ -2,12 +2,12 @@ import numpy as np
 from PIL import Image, ImageDraw
 import os
 import json
+import cv2
 
 
-def process_image(image_path, image_size, ort_session, yolo_labels, confidence_threshold):
-    test_image = crop_resize(Image.open(image_path), image_size)
-    np_image = np.array(test_image)
-    norm_image = image_normalise_reshape(np_image)
+def process_image(image, image_size, ort_session, yolo_labels, confidence_threshold):
+    image = crop_resize(image, image_size)
+    norm_image = image_normalise_reshape(image)
 
     onnxruntime_input = {ort_session.get_inputs()[0].name: norm_image}
     onnxruntime_outputs = ort_session.run(None, onnxruntime_input)
@@ -46,17 +46,20 @@ def log_detection(filename, json_detections_path, detections):
 
 
 def crop_resize(image, new_size):
-    width, height = image.size
+    height, width = image.shape[:2]
     min_dim = min(width, height)
 
+    # Calculate cropping boundaries
     left = (width - min_dim) // 2
     upper = (height - min_dim) // 2
     right = left + min_dim
     lower = upper + min_dim
 
-    square_image = image.crop((left, upper, right, lower))
+    # Crop the image
+    cropped_image = image[upper:lower, left:right]
+    resized_image = cv2.resize(cropped_image, (new_size, new_size))
 
-    return square_image.resize((new_size, new_size))
+    return resized_image
 
 
 def image_normalise_reshape(image):

@@ -7,6 +7,9 @@ import utils
 import os
 import argparse
 import shutil
+from PIL import Image
+import numpy as np
+import cv2
 
 
 def parse_arguments():
@@ -44,8 +47,9 @@ def main():
             for filename in file_list:
                 if filename.lower().endswith('.jpg'):
                     image_path = os.path.join(args.input_dir, filename)
-                    detections = utils.process_image(image_path, args.image_size,
-                                                     ort_session, yolo_labels, args.confidence)
+
+                    image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+                    detections = utils.process_image(image, args.image_size, ort_session, yolo_labels, args.confidence)
 
                     if detections:
                         # Keep the original filename
