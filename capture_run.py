@@ -25,13 +25,11 @@ def parse_arguments():
 def main():
     args = parse_arguments()
 
-    # Read in list of yolo class labels
-    with open("yolo_labels.txt", 'r') as file:
-        yolo_labels = [line.strip() for line in file]
+    if not os.path.exists(args.input_dir):
+        os.mkdir(args.input_dir)
 
-    # Create an ONNX Runtime inference session with GPU support
-    ort_session = onnxruntime.InferenceSession("./yolov7-tiny.onnx",
-                                               providers=['CUDAExecutionProvider'])
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
 
     json_detections_path = os.path.join(args.output_dir, "detections")
     if not os.path.exists(json_detections_path):
@@ -40,6 +38,14 @@ def main():
     image_detections_path = os.path.join(args.output_dir, "images")
     if not os.path.exists(image_detections_path):
         os.mkdir(image_detections_path)
+
+    # Read in list of yolo class labels
+    with open("yolo_labels.txt", 'r') as file:
+        yolo_labels = [line.strip() for line in file]
+
+    # Create an ONNX Runtime inference session with GPU support
+    ort_session = onnxruntime.InferenceSession("./yolov7-tiny.onnx",
+                                               providers=['CUDAExecutionProvider'])
 
     while True:
         file_list = os.listdir(args.input_dir)

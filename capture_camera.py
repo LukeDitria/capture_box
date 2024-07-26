@@ -28,6 +28,11 @@ def main():
     # Create an ONNX Runtime inference session with GPU support
     ort_session = onnxruntime.InferenceSession("./yolov7-tiny.onnx",
                                                providers=['CUDAExecutionProvider'])
+    if not os.path.exists(args.input_dir):
+        os.mkdir(args.input_dir)
+
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
 
     json_detections_path = os.path.join(args.output_dir, "detections")
     if not os.path.exists(json_detections_path):
