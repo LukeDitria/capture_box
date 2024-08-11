@@ -7,7 +7,6 @@ import utils
 import os
 import argparse
 import cv2
-from PIL import Image
 
 
 def parse_arguments():
@@ -20,10 +19,6 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
-
-    # Read in list of yolo class labels
-    with open("yolo_labels.txt", 'r') as file:
-        yolo_labels = [line.strip() for line in file]
 
     # Create an ONNX Runtime inference session with GPU support
     ort_session = onnxruntime.InferenceSession("./yolov7-tiny.onnx",
@@ -42,6 +37,11 @@ def main():
     if not os.path.exists(image_detections_path):
         os.makedirs(image_detections_path)
 
+    # Read in list of yolo class labels
+    yolo_labels = utils.read_txt_file("yolo_labels.txt")
+    # Read valid objects from config file
+    valid_objects = utils.read_txt_file("valid_objects.txt")
+
     # Initialize the webcam
     cap = cv2.VideoCapture(0)  # 0 is usually the default webcam
 
@@ -59,18 +59,19 @@ def main():
         # Resize and process the frame
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         detections = utils.process_image(image, args.image_size, ort_session, yolo_labels, args.confidence)
+        valid_detections = [d for d in detections if d[1] in valid_objects]
 
-        if detections:
+        if valid_detections:
             # Save the frame with detections
             image_path = os.path.join(image_detections_path, filename)
             cv2.imwrite(image_path, frame)
 
-            utils.log_detection(filename, json_detections_path, detections)
-            print(f"Detected {len(detections)} objects in {filename}")
-            for _, label, confidence in detections:
+            utils.log_detection(filename, json_detections_path, valid_detections)
+            print(f"Detected {len(valid_detections)} objects in {filename}")
+            for _, label, confidence in valid_detections:
                 print(f"- {label} with confidence {confidence:.2f}")
         else:
-            print(f"No detection above threshold for {filename}")
+            print(f"No valid detections above threshold for {filename}")
 
         cv2.imshow('Raw Camera Feed', frame)
 

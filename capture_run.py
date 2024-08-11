@@ -40,8 +40,10 @@ def main():
         os.mkdir(image_detections_path)
 
     # Read in list of yolo class labels
-    with open("yolo_labels.txt", 'r') as file:
-        yolo_labels = [line.strip() for line in file]
+    yolo_labels = utils.read_txt_file("yolo_labels.txt")
+
+    # Read valid objects from config file
+    valid_objects = utils.read_txt_file("valid_objects.txt")
 
     # Create an ONNX Runtime inference session with GPU support
     ort_session = onnxruntime.InferenceSession("./yolov7-tiny.onnx",
@@ -57,17 +59,19 @@ def main():
                     image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
                     detections = utils.process_image(image, args.image_size, ort_session, yolo_labels, args.confidence)
 
-                    if detections:
+                    valid_detections = [d for d in detections if d[1] in valid_objects]
+
+                    if valid_detections:
                         # Keep the original filename
                         new_path = os.path.join(image_detections_path, filename)
                         shutil.move(image_path, new_path)
 
-                        utils.log_detection(filename, json_detections_path, detections)
-                        print(f"Detected {len(detections)} objects in {filename}")
-                        for _, label, confidence in detections:
+                        utils.log_detection(filename, json_detections_path, valid_detections)
+                        print(f"Detected {len(valid_detections)} valid objects in {filename}")
+                        for _, label, confidence in valid_detections:
                             print(f"- {label} with confidence {confidence:.2f}")
                     else:
-                        print(f"No detection above threshold for {filename}")
+                        print(f"No valid detections above threshold for {filename}")
                         # Delete the original image
                         try:
                             os.remove(image_path)

@@ -75,3 +75,8 @@ def draw_bounding_box(image, coordinates, box_color="red", box_width=3):
     draw = ImageDraw.Draw(image)
     draw.rectangle(coordinates, outline=box_color, width=box_width)
     return image
+
+
+def read_txt_file(txt_file):
+    with open(txt_file, 'r') as file:
+        return [line.strip() for line in file]
